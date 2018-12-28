@@ -2,6 +2,7 @@ class App extends React.Component {
    state = {
       inputElement: '',
       listElements: [],
+      elementId: 0,
       errInformation: false
    }
 
@@ -19,18 +20,29 @@ class App extends React.Component {
       shoppingList = this.state.listElements;
 
       if(this.state.inputElement !== '') {
-         shoppingList.push({value: this.state.inputElement});
+         shoppingList.push({id: this.state.elementId, value: this.state.inputElement});
 
-         this.setState({
+         this.setState(prevState => ({
             listElements: shoppingList,
             inputElement: '',
+            elementId: prevState.elementId+1,
             errInformation: false
-         })
+         }))
       } else {
          this.setState({
             errInformation: true
          })
       }
+   }
+
+   handleRemoveFromListClick = (id) => {
+      let listElements = this.state.listElements;
+      
+      listElements = listElements.filter(currentElement => currentElement.id !== id);
+ 
+      this.setState({
+         listElements
+      })
    }
 
    render() { 
@@ -50,6 +62,8 @@ class App extends React.Component {
             }
             <ListElements 
                listElements={this.state.listElements}
+               elementId={this.state.elemetId}
+               removeFromListClick={this.handleRemoveFromListClick}
             />
          </div>
       );
@@ -73,14 +87,21 @@ const ListAmount = ({listElements}) => (
    <p className='app__amount'>Ilość pozycji na liście: {listElements.length}</p>
 )
 
-const ListElements = ({listElements}) => (
+const ListElements = ({listElements, elementId, removeFromListClick}) => (
    <ul className='app__list'>
-      {listElements.map(currentElement => <Element {...currentElement}/>)}
+      {listElements.map(currentElement => <Element 
+         key={currentElement.id}
+         {...currentElement}
+         removeFromListClick={removeFromListClick} 
+      />)}
    </ul> 
 )
 
 const Element = (props) => (
-   <li className='list__element'>{props.value}</li>
+   <div className='element'>
+      <li className='list__element'>{props.value}</li>
+      <img src="del.svg" alt="usun" onClick={() => props.removeFromListClick(props.id)}/>
+   </div>
 )
 
 ReactDOM.render(<App/>, document.getElementById('root'));
