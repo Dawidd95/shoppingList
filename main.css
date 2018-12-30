@@ -1,9 +1,29 @@
+button {
+  outline: none; }
+
 .app {
   width: 100%;
   height: 100;
   margin: 0;
   padding: 0;
   font-family: "Quicksand"; }
+
+.app__filter {
+  margin-left: 40px; }
+
+.filter__button {
+  margin: 10px 10px 10px 0;
+  padding: 10px;
+  font-size: 16px;
+  background-color: white;
+  border: 2px solid #ddad;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s; }
+  .filter__button:hover {
+    background-color: #fae342;
+    color: white;
+    transition: 0.3s; }
 
 .app__header {
   margin: 20px 0 30px 40px;
@@ -54,7 +74,7 @@
   margin-top: 20px; }
 
 .element {
-  width: 340px;
+  width: 450px;
   display: flex;
   justify-content: space-around;
   align-items: center; }
@@ -80,5 +100,14 @@
     margin-top: 20px; }
   .list__element:last-child {
     margin-bottom: 20px; }
+
+.element__type {
+  padding-left: 20px;
+  font-weight: bold;
+  color: red;
+  text-decoration: underline;
+  cursor: pointer; }
+  .element__type:hover {
+    color: blue; }
 
 /*# sourceMappingURL=main.css.map */
