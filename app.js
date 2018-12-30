@@ -58,7 +58,27 @@ class App extends React.Component {
       }
    }
 
-   filterBooks = () => {
+   handleAddRemoveFavorites = (id) => {
+      let listElements = [...this.state.listElements];
+
+      listElements = listElements.map( currentElement => {
+         if(currentElement.id === id) {
+            if(currentElement.type === 'favorite') {
+               currentElement.type = 'unfavorite';
+            } else {
+               currentElement.type = 'favorite';
+            }
+         } 
+
+         return currentElement;
+      })
+      
+      this.setState({
+         listElements: listElements
+      })
+   }
+
+   changeSection = () => {
       if(this.state.selected === 'all') {
          return(
             <div>
@@ -73,19 +93,37 @@ class App extends React.Component {
                   changeElementNameInput={this.handleElementNameInputChange}
                   clickAddToShoppingList={this.handleAddToShoppingList}              
                   removeFromListClick={this.handleRemoveFromListClick}
+                  addRemoveFavorites={this.handleAddRemoveFavorites}
                />
             </div>          
          )
-      } else {
-         return(
-            <div>
-               <Title 
-                  content='Favorites'
-               />
-            </div>   
-         )
-      }
+      } else { return <Title content='Favorites'/> }
    } 
+
+   // moglibysmy dorobic w <ListElements /> {} return() i tez podobnie zawarunkowac
+   filterBooks = () => {
+      if(this.state.selected === 'all') {
+         return [...this.state.listElements].map(currentElement => <Element 
+            key={currentElement.id}
+            {...currentElement}
+            removeFromListClick={this.handleRemoveFromListClick}
+            addRemoveFavorites={this.handleAddRemoveFavorites}
+         />)
+      } else {
+         let favoriteElements = [...this.state.listElements].filter(currentElement => {
+            return currentElement.type === 'unfavorite'
+         })
+
+         favoriteElements = favoriteElements.map(currentElement => <Element 
+            key={currentElement.id}
+            {...currentElement}
+            removeFromListClick={this.handleRemoveFromListClick}
+            addRemoveFavorites={this.handleAddRemoveFavorites}
+         />)
+
+         return favoriteElements
+      }
+   }
 
    render() { 
       return (  
@@ -93,7 +131,8 @@ class App extends React.Component {
             <FilterButtons 
                filterClick={this.handleFilterClick}
             />
-            {this.filterBooks()}           
+            {this.changeSection()}   
+            {this.filterBooks()}
          </div>
       );
    }
@@ -120,7 +159,7 @@ const Title = ({content}) => (
    <header className='app__header'>{content}</header>
 )
 
-const AllBooks = ({inputElement, listElements, elementId, errInformation, changeElementNameInput, clickAddToShoppingList, removeFromListClick}) => (
+const AllBooks = ({inputElement, listElements, elementId, errInformation, changeElementNameInput, clickAddToShoppingList, removeFromListClick, addRemoveFavorites}) => (
    <div>
       <AddForm 
          changeElementNameInput={changeElementNameInput}
@@ -133,11 +172,6 @@ const AllBooks = ({inputElement, listElements, elementId, errInformation, change
       {errInformation && 
          <p className="app__error">Nie możesz dodać do listy pustej pozycji</p>
       }
-      <ListElements 
-         listElements={listElements}
-         elementId={elementId}
-         removeFromListClick={removeFromListClick}
-      />
    </div>
 )
  
@@ -154,21 +188,13 @@ const ListAmount = ({listElements}) => (
    <p className='app__amount'>Ilość pozycji na liście: {listElements.length}</p>
 )
 
-const ListElements = ({listElements, removeFromListClick}) => (
-   <ul className='app__list'>
-      {listElements.map(currentElement => <Element 
-         key={currentElement.id}
-         {...currentElement}
-         removeFromListClick={removeFromListClick} 
-      />)}
-   </ul> 
-)
-
 const Element = (props) => (
    <div className='element'>
       <li className='list__element'>{props.value}</li>
       <img src="del.svg" alt="usun" onClick={() => props.removeFromListClick(props.id)}/>
-      <p className='element__type'>{props.type}</p>
+      <p className='element__type' onClick={() => props.addRemoveFavorites(props.id)}>
+         {props.type}
+      </p>
    </div>
 )
 
