@@ -4,12 +4,15 @@ class App extends React.Component {
       inputElement: '',
       listElements: [],
       elementId: 0,
-      errInformation: false
+      errInformation: false,
+      editModal: false,
+      inputEdit: '',
+      editElementId: ''
    }
 
    handleElementNameInputChange = (event) => {
       this.setState({
-         inputElement: event.currentTarget.value
+         [event.currentTarget.name]: event.currentTarget.value
       })
    }
 
@@ -78,6 +81,41 @@ class App extends React.Component {
       })
    }
 
+   handleShowEditModalClick = (id) => {
+      let element = [...this.state.listElements].map(currentElement => {
+         if(currentElement.id === id) {
+            return currentElement.value
+         }
+      });
+
+      this.setState({
+         editModal: true,
+         inputEdit: element,
+         editElementId: id 
+      })
+   }
+
+   handleHideEditModalClick = () => {
+      this.setState({
+         editModal: false
+      })
+   }
+
+   handleEditElement = () => {
+      let listElements = [...this.state.listElements].map(currentElement => {
+         if(currentElement.id === this.state.editElementId) {
+            currentElement.value = this.state.inputEdit
+         }
+
+         return currentElement
+      })
+      
+      this.setState({
+         listElements,
+         editModal: false
+      })
+   }
+
    changeSection = () => {
       if(this.state.selected === 'all') {
          return(
@@ -100,31 +138,6 @@ class App extends React.Component {
       } else { return <Title content='Favorites'/> }
    } 
 
-   // moglibysmy dorobic w <ListElements /> {} return() i tez podobnie zawarunkowac
-   filterBooks = () => {
-      if(this.state.selected === 'all') {
-         return [...this.state.listElements].map(currentElement => <Element 
-            key={currentElement.id}
-            {...currentElement}
-            removeFromListClick={this.handleRemoveFromListClick}
-            addRemoveFavorites={this.handleAddRemoveFavorites}
-         />)
-      } else {
-         let favoriteElements = [...this.state.listElements].filter(currentElement => {
-            return currentElement.type === 'unfavorite'
-         })
-
-         favoriteElements = favoriteElements.map(currentElement => <Element 
-            key={currentElement.id}
-            {...currentElement}
-            removeFromListClick={this.handleRemoveFromListClick}
-            addRemoveFavorites={this.handleAddRemoveFavorites}
-         />)
-
-         return favoriteElements
-      }
-   }
-
    render() { 
       return (  
          <div className='app'>
@@ -132,7 +145,20 @@ class App extends React.Component {
                filterClick={this.handleFilterClick}
             />
             {this.changeSection()}   
-            {this.filterBooks()}
+            <ListItems 
+               selected={this.state.selected}
+               listElements={this.state.listElements}
+               removeFromListClick={this.handleRemoveFromListClick}
+               addRemoveFavorites={this.handleAddRemoveFavorites}
+               ShowEditModalClick={this.handleShowEditModalClick}
+            />
+            {this.state.editModal && <EditModal 
+               editModal={this.state.editModal}
+               inputEdit={this.state.inputEdit}
+               elementNameInputChange={this.handleElementNameInputChange}
+               hideEditModalClick={this.handleHideEditModalClick}
+               editElement={this.handleEditElement}
+            />}
          </div>
       );
    }
@@ -159,7 +185,7 @@ const Title = ({content}) => (
    <header className='app__header'>{content}</header>
 )
 
-const AllBooks = ({inputElement, listElements, elementId, errInformation, changeElementNameInput, clickAddToShoppingList, removeFromListClick, addRemoveFavorites}) => (
+const AllBooks = ({inputElement, listElements, errInformation, changeElementNameInput, clickAddToShoppingList}) => (
    <div>
       <AddForm 
          changeElementNameInput={changeElementNameInput}
@@ -177,7 +203,7 @@ const AllBooks = ({inputElement, listElements, elementId, errInformation, change
  
 const AddForm = ({changeElementNameInput, clickAddToShoppingList, inputElement}) => (
    <form className='app__form'>
-      <input className='form__input' type="text" value={inputElement} onChange={ event => changeElementNameInput(event)}/>
+      <input name='inputElement' className='form__input' type="text" value={inputElement} onChange={ event => changeElementNameInput(event)}/>
       <button className='form__button' onClick={ (event) => clickAddToShoppingList(event)}> 
          Dodaj do listy 
       </button>
@@ -188,6 +214,33 @@ const ListAmount = ({listElements}) => (
    <p className='app__amount'>Ilość pozycji na liście: {listElements.length}</p>
 )
 
+const ListItems = ({selected, listElements, removeFromListClick, addRemoveFavorites, ShowEditModalClick}) => {
+   
+   listElements = [...listElements];
+
+   if(selected === 'all') {
+      return listElements.map(currentElement => <Element 
+         key={currentElement.id}
+         {...currentElement}
+         removeFromListClick={removeFromListClick}
+         addRemoveFavorites={addRemoveFavorites}
+         ShowEditModalClick={ShowEditModalClick}
+      />)
+   } else {
+      let favoriteElements = listElements.filter(currentElement => {
+         return currentElement.type === 'unfavorite'
+      })
+
+      return favoriteElements.map(currentElement => <Element 
+         key={currentElement.id}
+         {...currentElement}
+         removeFromListClick={removeFromListClick}
+         addRemoveFavorites={addRemoveFavorites}
+         ShowEditModalClick={ShowEditModalClick}
+      />)
+   }
+}
+
 const Element = (props) => (
    <div className='element'>
       <li className='list__element'>{props.value}</li>
@@ -195,7 +248,39 @@ const Element = (props) => (
       <p className='element__type' onClick={() => props.addRemoveFavorites(props.id)}>
          {props.type}
       </p>
+      <p className='element__edit' onClick={() => props.ShowEditModalClick(props.id)}>Edit</p>
    </div>
+)
+
+const EditModal = ({editModal, inputEdit, elementNameInputChange, hideEditModalClick, editElement}) => (
+   <div className='edit__modal'>
+      <dialog open={editModal}>
+         <CloseModal 
+            hideEditModalClick={hideEditModalClick}
+         />
+         <InputEditModal 
+            inputEdit={inputEdit}
+            elementNameInputChange={elementNameInputChange}
+         />
+         <ModalEditButton 
+            editElement={editElement}
+         /> 
+      </dialog>
+   </div>
+)
+
+const CloseModal = ({hideEditModalClick}) => (
+   <p className='close' onClick={() => hideEditModalClick()}>
+      X
+   </p>
+)
+
+const InputEditModal = ({inputEdit, elementNameInputChange}) => (
+   <input value={inputEdit} name='inputEdit' type="text" onChange={(event) => elementNameInputChange(event)}/>
+)
+
+const ModalEditButton = ({editElement}) => (
+   <button className='dialog__button' onClick={() => editElement()}>Edit Element</button>
 )
 
 ReactDOM.render(<App/>, document.getElementById('root'));
